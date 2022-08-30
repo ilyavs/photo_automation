@@ -90,7 +90,7 @@ class ProcessDirectory:
         parser = argparse.ArgumentParser(description='This program will process all images in a directory to produce reduce sized, watermarked, grouped by date images')
         parser.add_argument('--indir', required=True, help='Directory with input images (can be in subdirectories')
         parser.add_argument('--outdir', required=True, help='Output directory to save files')
-        parser.add_argument('--min-date', default='20/04/22', help='Date to begin processing images from, format DD/MM/YY', type=lambda x: datetime.strptime(x, '%d/%m/%y').date())
+        parser.add_argument('--min-date', default='08/07/22', help='Date to begin processing images from, format DD/MM/YY', type=lambda x: datetime.strptime(x, '%d/%m/%y').date())
         self.args = parser.parse_args()
 
 
