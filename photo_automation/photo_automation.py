@@ -116,5 +116,16 @@ class ProcessDirectory:
             image.close()
 
 
+    def filter_paths(self, file_names):
+        for path in self.get_all_image_paths():
+            if path.stem in file_names:
+                yield path
+
+
+def read_file_names(file_names_path):
+    with open(file_names_path) as f:
+        return [line.strip() for line in f.readlines()]
+
+
 if __name__ == '__main__':
     ProcessDirectory(parse=True).process_images()
