@@ -1,3 +1,4 @@
+from select import select
 from PIL import Image, ImageFont, ImageDraw
 import math
 from PIL.ExifTags import TAGS
@@ -7,6 +8,9 @@ import os
 from pathlib import Path
 import imghdr
 import argparse
+import pandas as pd
+import shutil
+from pathlib import Path
 
 
 class ProcessImage:
@@ -119,12 +123,30 @@ class ProcessDirectory:
     def filter_paths(self, file_names):
         for path in self.get_all_image_paths():
             if path.stem in file_names:
-                yield path
+                yield path.stem, path
 
 
 def read_file_names(file_names_path):
     with open(file_names_path) as f:
         return [line.strip() for line in f.readlines()]
+
+
+def process_selection(file_names_path, originals_path, processed_path, selected_path):
+    selected_path = Path(selected_path)
+    file_names = read_file_names(file_names_path)
+    originals = ProcessDirectory(originals_path, selected_path)
+    processed = ProcessDirectory(processed_path, selected_path)
+    original_df = pd.DataFrame(originals.filter_paths(file_names), columns=['stem', 'original_path']).set_index('stem')
+    processed_df = pd.DataFrame(processed.filter_paths(file_names), columns=['stem', 'processed_path']).set_index('stem')
+    combined_df = pd.merge(original_df, processed_df, on='stem')
+    combined_df['processed_dir'] = combined_df.processed_path.apply(lambda x: x.parent.stem)
+    combined_df['camera_dir'] = combined_df.original_path.apply(lambda x: str(x).strip(originals_path).split('/', 1)[0])
+    print(combined_df.groupby('camera_dir').size())
+    os.makedirs(selected_path, exist_ok=True)
+    for row in combined_df.itertuples():
+        row_dir = selected_path / row.processed_dir
+        os.makedirs(row_dir, exist_ok=True)
+        shutil.copy2(row.original_path, row_dir / row.original_path.name)
 
 
 if __name__ == '__main__':
