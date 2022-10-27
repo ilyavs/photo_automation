@@ -25,7 +25,10 @@ class ProcessImage:
 
     def get_exifdata(self):
         self.exifdata = {TAGS.get(k, k): v for k, v in self.image.getexif().items()}
-        self.date = datetime.strptime(self.exifdata['DateTime'], '%Y:%m:%d %H:%M:%S').date()
+        try:
+            self.date = datetime.strptime(self.exifdata['DateTime'], '%Y:%m:%d %H:%M:%S').date()
+        except:
+            print(self.path)
     
 
     def resize(self):
