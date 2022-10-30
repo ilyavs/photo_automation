@@ -139,11 +139,11 @@ def process_selection(file_names_path, originals_path, processed_path, selected_
     file_names = read_file_names(file_names_path)
     originals = ProcessDirectory(originals_path, selected_path)
     processed = ProcessDirectory(processed_path, selected_path)
-    original_df = pd.DataFrame(originals.filter_paths(file_names), columns=['stem', 'original_path']).set_index('stem')
+    original_df = pd.DataFrame(originals.filter_paths(file_names), columns=['stem', 'original_path']).drop_duplicates(subset=['stem']).set_index('stem')
     processed_df = pd.DataFrame(processed.filter_paths(file_names), columns=['stem', 'processed_path']).set_index('stem')
     combined_df = pd.merge(original_df, processed_df, on='stem')
     combined_df['processed_dir'] = combined_df.processed_path.apply(lambda x: x.parent.stem)
-    combined_df['camera_dir'] = combined_df.original_path.apply(lambda x: str(x).strip(originals_path).split('/', 1)[0])
+    combined_df['camera_dir'] = combined_df.original_path.apply(lambda x: str(x).split(originals_path + '/')[1].split('/', 1)[0])
     print(combined_df.groupby('camera_dir').size())
     legal_text = f'''Use of my Image. I Ilya Vainberg Slutskin, original owner of the images, hereby grant to Oleg Galeev and his website MyTrip2Ecuador.com permission to use the images taken of me and shared via google drive by or on behalf of the MyTrip2Ecuador.com during for commercial or non-commercial materials on the website, in-article use only. I understand that I will not receive any additional compensation for such use (except for the payment $5 per attached photo) and hereby release the MyTrip2Ecuador.com and anyone working on behalf of the website in connection with the use of my images. Oleg Galeev or and anyone working on behalf of the website may not resell the photos or use them anywhere else besides MyTrip2Ecuador.com website. The image file names are:
     {', '.join(combined_df.original_path.apply(lambda x: Path(x).name))}
@@ -154,6 +154,7 @@ def process_selection(file_names_path, originals_path, processed_path, selected_
         row_dir = selected_path / row.processed_dir
         os.makedirs(row_dir, exist_ok=True)
         shutil.copy2(row.original_path, row_dir / row.original_path.name)
+    return combined_df
 
 
 def print_legal(file_names_path):
